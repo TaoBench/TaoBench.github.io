@@ -591,10 +591,23 @@ from the difficulty of each problem, enabling a direct evaluation of impact on m
           <h2 class="title is-3"><span class="tao">TaoBench</span> Data Construction</h2>
           <div class="content has-text-justified">
             <p>
-First, we construct an agentic pipeline that faithfully retrieves minimal, compilable contexts from a large, custom Lean project.
+Constructing a benchmark that preserves the exact textbook formalizations while producing a self-contained succinct
+compilable Lean snippet presents significant technical challenges for current LLMs. We find that naïvely importing
+entire chapters or sections of the textbook leads to excessive context length, compilation failures, and unfaithful re-
+constructions of the original problem and its intent. We observe that without explicit targets, modern frontier LLMs
+struggle to identify all information critical for compilation over large textbook contexts containing extensive irrelevant
+information. Furthermore, querying frontier LLMs with the objective of compilation may succeed in compilation
+while silently changing the intended meaning. 
+            </p>
+            <p>
+This necessitates a pipeline that provides grounded reference information to the model, to avoid hallucinating and trivializing statements, as well as allowing for multiple compilation attempts. Thus, we introduce an agentic framework that retrieves the minimal context from the textbook and iteratively attempts compilation and fixes issues until it achieves successful compilation.
+            </p>
+            <p>
+The final output of this process is two-fold. First, we construct an agentic pipeline that faithfully retrieves minimal, compilable contexts from a large, custom Lean project.
 Second, we generate <b><span class="tao">TaoBench</span></b>, a set of textbook-syntax exercises with minimal, fully compilable Lean context that preserves the intent of the original formalization. This
 benchmark enables a controlled evaluation of model performance under a genuine out-of-distribution formal setting,
 while avoiding confounding factors arising from missing context or compilation failures.
+
             </p>
 
             <div class="content has-text-centered">
@@ -784,7 +797,7 @@ models on Tao formulations is driven by a superior capability to leverage in-con
           <h3 class="title is-4" id="formalized" style="margin-top: 3rem;">Model Performance by Chapter</h3>
           <div class="content has-text-justified">
             <p>
-Figure 7 breaks down pass rates by chapter and shows that the overall Tao-MathLib gap is not uniform: it is concen-
+The figure below breaks down pass rates by chapter and shows that the overall Tao-MathLib gap is not uniform: it is concen-
 trated in a few chapters where the representation of core objects diverges most from MathLib. A large and consistent
 gap appears in Set Theory (Ch. 3), where all five models exhibit a substantial MathLib advantage of roughly 42-58
 percentage points. Two pronounced failure modes occur in The Natural Numbers (Ch. 1) and Series (Ch. 7): 
