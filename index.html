@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="description" content="IneqMath: Solving Inequality Proofs with Large Language Models">
+  <meta name="keywords" content="IneqMath, Olympiad, Inequality, Proof, Math, Reasoning">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IneqMath: Solving Inequality Proofs with Large Language Models</title>
+
+  <link rel="icon" href="./assets/logos/ineqmath_icon.png">
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="stylesheet" href="./static/css/tool_cards.css">
+  <link rel="stylesheet" href="./static/css/top_button.css">
+  <link rel="stylesheet" href="./static/css/navbar.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="stylesheet" href="./static/css/video.css">
+
+  <!-- Add tooltip styles -->
+  <style>
+    :root {
+      --ineq-blue: #103756;
+      --ineq-red: #D03C36;
+      --tao: #a40000;
+      --tao_mathlib: #341cce;
+    }
+    .ineq-blue { color: var(--ineq-blue); }
+    .ineq-red { color: var(--ineq-red); }
+    .tao { color: var(--tao); }
+    .tao_mathlib { color: var(--tao_mathlib); }
+    .tooltip-icon {
+      position: relative;
+      cursor: pointer;
+    }
+    
+    .tooltip-icon:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #333;
+      color: white;
+      padding: 5px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      white-space: nowrap;
+      z-index: 1000;
+      opacity: 1;
+      pointer-events: none;
+    }
+    
+    .tooltip-icon:hover::before {
+      content: '';
+      position: absolute;
+      bottom: 120%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-top-color: #333;
+      z-index: 1000;
+    }
+
+    .figure-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 24px;
+    }
+
+    .figure-image {
+      flex: 0 0 45%;
+    }
+
+    .figure-image img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .figure-text {
+      flex: 1;
+    }
+
+    .figure-text p {
+      margin-bottom: 0.5em;
+      text-align: justify;
+    }
+
+    /* Add borders to leaderboard table */
+    #leaderboard-table {
+      border-collapse: collapse;
+      width: 100%;
+      table-layout: fixed;
+    }
+    
+    #leaderboard-table th,
+    #leaderboard-table td {
+      border: 1px solid #ddd;
+      text-align: center;
+      vertical-align: middle;
+      padding: 6px 4px;
+      font-size: 14px;
+    }
+    
+    /* Set specific column widths to make them narrower */
+    #leaderboard-table th:nth-child(1), /* Rank */
+    #leaderboard-table td:nth-child(1) {
+      width: 5%;
+    }
+    
+    #leaderboard-table th:nth-child(2), /* Model */
+    #leaderboard-table td:nth-child(2) {
+      width: 18%;
+      text-align: left;
+      padding-left: 8px;
+    }
+    
+    #leaderboard-table th:nth-child(3), /* Size */
+    #leaderboard-table td:nth-child(3) {
+      width: 8%;
+    }
+    
+    #leaderboard-table th:nth-child(4), /* Type */
+    #leaderboard-table td:nth-child(4) {
+      width: 6%;
+    }
+    
+    #leaderboard-table th:nth-child(5), /* Source */
+    #leaderboard-table td:nth-child(5) {
+      width: 6%;
+    }
+    
+    #leaderboard-table th:nth-child(6), /* Date */
+    #leaderboard-table td:nth-child(6) {
+      width: 12%;
+    }
+    
+    /* Accuracy columns - make them narrower */
+    #leaderboard-table th:nth-child(7), /* Overall Acc */
+    #leaderboard-table td:nth-child(7),
+    #leaderboard-table th:nth-child(8), /* Answer Acc */
+    #leaderboard-table td:nth-child(8),
+    #leaderboard-table th:nth-child(9), /* Step Acc (NTC) */
+    #leaderboard-table td:nth-child(9),
+    #leaderboard-table th:nth-child(10), /* Step Acc (NLG) */
+    #leaderboard-table td:nth-child(10),
+    #leaderboard-table th:nth-child(11), /* Step Acc (NAE) */
+    #leaderboard-table td:nth-child(11),
+    #leaderboard-table th:nth-child(12) /* Step Acc (NCE) */,
+    #leaderboard-table td:nth-child(12) {
+      width: 7.5%;
+    }
+    
+    #leaderboard-table th {
+      border-bottom: 2px solid #333;
+    }
+    
+    #leaderboard-table tbody tr:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    /* Make author names bigger */
+    .publication-authors .author-block a {
+      font-size: 1.1em;
+      font-weight: 500;
+    }
+
+    /* Make leaderboard table body scrollable if too many rows */
+    #leaderboard-table tbody {
+      display: block;
+      max-height: 700px; /* Should match JS */
+      overflow-y: auto;
+    }
+    #leaderboard-table thead, #leaderboard-table tbody tr {
+      display: table;
+      width: 100%;
+      table-layout: fixed;
+    }
+
+    /* Indicate clickable leaderboard table headers on hover (override inline styles) */
+    #leaderboard-table th {
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, transform 0.1s;
+    }
+    #leaderboard-table th:hover {
+      background: #e0e7ff !important;
+      color: #2A75D0 !important;
+      transform: scale(1.04);
+      z-index: 20;
+    }
+
+    /* Add hover effect for filter choices in leaderboard filters */
+    #leaderboard-filters .tag.is-light {
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    }
+    #leaderboard-filters .tag.is-light:hover {
+      background: #e0e7ff;
+      color: #2A75D0;
+      box-shadow: 0 2px 8px rgba(42, 117, 208, 0.10);
+      cursor: pointer;
+    }
+
+    /* Ensure pointer cursor on checkbox/radio input inside filter tags */
+    #leaderboard-filters .tag.is-light input[type='checkbox'],
+    #leaderboard-filters .tag.is-light input[type='radio'] {
+      cursor: pointer;
+    }
+
+    /* Add hover effect for column filter choices */
+    #column-filters .tag.is-light {
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    }
+    #column-filters .tag.is-light:hover {
+      background: #e0e7ff;
+      color: #2A75D0;
+      box-shadow: 0 2px 8px rgba(42, 117, 208, 0.10);
+      cursor: pointer;
+    }
+
+    /* Ensure pointer cursor on checkbox input inside column filter tags */
+    #column-filters .tag.is-light input[type='checkbox'] {
+      cursor: pointer;
+    }
+
+    /* Add background color for visualization content boxes */
+    #viz-content .box {
+      background-color: #F0F8FF;
+      border: 1px solid #d1d5db;
+      box-shadow: none;
+    }
+
+    /* Hover effect for visualization content boxes */
+    #viz-content .box:hover {
+      background-color: #E6F2FF;
+      transition: background-color 0.2s ease;
+      box-shadow: none;
+    }
+
+    /* Style theorem boxes in visualization to match F0F8FF background */
+    #theorems-render div[style*="background-color: #f9f9f9"] {
+      background-color: #F5F7FA !important;
+    }
+
+    /* Alternative selector for theorem styling */
+    .theorem-box {
+      background-color: #F5F7FA !important;
+    }
+  </style>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/explorer-index.js"></script>
+
+  <!-- Add navbar.js script -->
+  <script src="./static/js/navbar.js"></script>
+
+  <!-- Add MathJax -->
+  <script src="./static/js/mathjax.js"></script>
+  <script id="MathJax-script" defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <!-- Add visualization.js script -->
+  <script src="./static/js/visualization.js"></script>
+
+  <!-- Add dynamic leaderboard script -->
+  <script src="./static/js/leaderboard-dynamic.js"></script>
+
+  <!-- Add title animation script -->
+  <script src="./static/js/title_animation.js"></script>
+
+  <!-- Add visualization tool JS -->
+  <script src="./static/js/visualization-tool.js"></script>
+
+</head>
+
+
+<body>
+
+  <nav class="navbar" role="navigation" aria-label="main navigation">
+    <div class="navbar-brand">
+      <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </a>
+    </div>
+    <div class="navbar-menu">
+      <div class="navbar-start" style="flex-grow: 1; justify-content: center;">
+        <a class="navbar-item" href="" target="_blank">
+          <span class="icon">
+            <i class="fas fa-home"></i>
+          </span>
+        </a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link">
+            More Research
+          </a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="" target="_blank">
+              <b>PLACEHOLDER</b>
+              <p style="font-size:18px; display: inline; margin-left: 5px;">🔥</p>
+            </a>
+            
+            
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </nav>
+
+  <!-- Burger Menu for Table of Contents -->
+  <button class="toc-burger" id="toc-burger" aria-label="Toggle table of contents">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+
+  <div class="toc-wrapper" id="toc-wrapper">
+    <div class="toc-header">
+      <h4>Table of Contents</h4>
+      <button class="toc-close" id="toc-close" aria-label="Close table of contents">×</button>
+    </div>
+    <ul class="toc-list">
+      <li><a href="#introduction">Introduction</a></li>
+      <li><a href="#examples"><b><span class="ineq-blue">Ineq</span><span class="ineq-red">Math</span></b> Examples</a></li>
+      <li><a href="#judges">Informal Judges</a></li>
+      <li><a href="#leaderboard"><b><span class="ineq-blue">Ineq</span><span class="ineq-red">Math</span></b> Leaderboard</a></li>
+      <li><a href="#dataset-overview">Dataset Overview</a></li>
+      <li><a href="#visualization">Visualization</a></li>
+      <li><a href="#results">Experimental Results</a></li>
+      <li><a href="#BibTeX">BibTeX</a></li>
+    </ul>
+  </div>
+
+  <div class="toc-overlay" id="toc-overlay"></div>
+
+  <section class="hero">
+    <div class="hero-body">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered">
+          <div class="column has-text-centered">
+            <h1 class="title is-1 publication-title is-bold">
+              <!-- <span style="vertical-align: middle">
+                <img src="assets/logos/ineqmath.svg" alt="IneqMath Logo" style="height: 1.6em; vertical-align: middle; margin-right: 8px;">
+              </span> -->
+              <span class="tao">TaoBench</span>
+            </h1>
+            <h2 class="subtitle is-3 publication-subtitle">
+              <strong>Do Automated Theorem Prover LLMs Generalize Beyond MathLib?</strong>
+            </h2>
+            <div class="is-size-5 publication-authors">
+              <span class="author-block">
+                <a href="" target="_blank">Alexander K Taylor</a><strong>*</strong><sup><span style="color: rgb(0, 50, 98);">1</span></sup>,</span>
+              <span class="author-block">
+                <a href="" target="_blank">Junyi Zhang</a><strong>*</strong><sup><span style="color: rgb(0, 50, 98);">1</span></sup>,</span>
+              <span class="author-block">
+                <a href="" target="_blank">Ethan Ji</a><sup><span style="color: rgb(0, 50, 98);">1</span></sup>,</span>
+              <span class="author-block">
+                <a href="" target="_blank">Vigyan Sahai</a><sup><span style="color: rgb(0, 0, 0);">2</span></sup>,</span>
+              <span class="author-block">
+                <a href="" target="_blank">Haikang Deng</a><sup><span style="color: rgb(0, 50, 98);">1</span></sup>,</span>
+              <span class="author-block">
+                <a href="" target="_blank">Yuanzhou Chen</a><sup><span style="color: rgb(0, 50, 98);">1</span></sup>,</span>
+              <span class="author-block">
+                <a href="" target="_blank">Yifan Yuan</a><sup><span style="color: rgb(0, 50, 98);">1</span></sup></span>
+              <span class="author-block">
+                <a href="" target="_blank">Di Wu</a><sup><span style="color: rgb(0, 50, 98);">1</span></sup></span>
+              <span class="author-block">
+                <a href="" target="_blank">Jia-Chen Gu</a><sup><span style="color: rgb(0, 50, 98);">1</span></sup></span>
+              <span class="author-block">
+                <a href="" target="_blank">Kai-Wei Chang</a><strong>†</strong><sup><span style="color: rgb(0, 50, 98);">1</span></sup></span>
+              <span class="author-block">
+                <a href="" target="_blank">Nanyun Peng</a><strong>†</strong><sup><span style="color: rgb(0, 50, 98);">1</span></sup></span>
+              <span class="author-block">
+                <a href="" target="_blank">Amit Sahai</a><strong>†</strong><sup><span style="color: rgb(0, 50, 98);">1</span></sup></span>
+              <span class="author-block">
+                <a href="" target="_blank">Wei Wang</a><strong>†</strong><sup><span style="color: rgb(0, 50, 98);">1</span></sup></span>
+            </div>
+
+            <!-- <div style="height: 1em;"></div> -->
+
+            <div class="is-size-5 publication-authors">
+              <span class="author-block" style="margin-right: 20px;"><sup><span style="color: rgb(0, 50, 98);">1</span></sup> <span style="color: rgb(0, 50, 98);">University of California, Los Angeles</span></span>
+              <span class="author-block" style="margin-right: 20px;"><sup><span style="color: rgb(0, 0, 0);">2</span></sup> <span style="color: rgb(0, 0, 0);">University of California, Santa Barbara</span></span><br>
+              <span class="paper-block" style="margin-right: 24px;"><b>* Co-first authors</b></span><br>
+              <span class="paper-block" style="margin-right: 24px;"><b>† Senior authors are listed in alphabetical order</b></span>
+            </div>
+
+
+            <div class="column has-text-centered">
+              <div class="publication-links">
+                <!-- PDF Link. -->
+                <!-- <span class="link-block">
+                  <a href="https://arxiv.org/pdf/2502.11271.pdf"
+                    class="external-link button is-normal is-rounded is-dark" target="_blank">
+                    <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                    </span>
+                    <span>Paper</span>
+                  </a>
+                </span> -->
+                <!-- arxiv link -->
+                <span class="link-block">
+                  <a href="" class="external-link button is-normal is-rounded is-dark" target="_blank">
+                    <span class="icon">
+                      <i class="ai ai-arxiv"></i>
+                    </span>
+                    <span>arXiv</span>
+                  </a>
+                </span>
+                <!-- HF Paper
+                <span class="link-block">
+                  <a href="https://huggingface.co/papers/2506.07927" class="external-link button is-normal is-rounded is-dark" target="_blank">
+                    <span class="icon">
+                      <img src="assets/logos/huggingface.svg" width="20" height="20" style="vertical-align: middle;" alt="HuggingFace">
+                    </span>
+                    <span>Paper</span>
+                  </a>
+                </span> -->
+                <!-- Code Link. -->
+                <span class="link-block">
+                  <a href=""
+                    class="external-link button is-normal is-rounded is-dark" target="_blank">
+                    <span class="icon">
+                      <i class="fab fa-github"></i>
+                    </span>
+                    <span>Code</span>
+                  </a>
+                </span>
+                <!-- Hugging Face Link. -->
+                <span class="link-block">
+                  <a href=""
+                    class="external-link button is-normal is-rounded is-dark" target="_blank">
+                    <span class="icon">
+                      <img src="assets/logos/huggingface.svg" width="20" height="20" style="vertical-align: middle;" alt="HuggingFace">
+                    </span>
+                    <span>Data</span>
+                  </a>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="hero teaser">
+    <div class="container is-max-desktop">
+      <div class="figure-row">
+        <div class="figure-image">
+          <img src="assets/figures/Teser_Figure.png" alt="Teser Figure">
+        </div>
+        
+        <div class="figure-text">
+          <h2 class="title is-3">Overview</h2>
+<p>
+In this work, we evaluate the robustness of current ATP systems when applied
+to a novel definitional framework, specifically
+examining the performance gap between standard library problems and bespoke mathematical constructions.
+</p> 
+
+<p>
+We introduce <b><span class="tao">TaoBench</span></b>, an undergraduate-level benchmark derived from
+Terence Tao's <em>Analysis I</em>, which formalizes analysis by <b>constructing core mathematical concepts
+from scratch, without relying on standard Mathlib definitions, as well as by mixing from-scratch
+and MathLib constructions.</b> For fair evaluation, we build an agentic pipeline that automatically
+extracts a compilable, self-contained local environment for each problem. <b>To isolate the effect of definitional frameworks, we additionally
+translate every problem into a mathematically equivalent Mathlib formulation,</b> yielding paired
+<b><span class="tao_mathlib">TaoBenchMathlib</span></b> statements for direct comparison. 
+</p>
+
+<p>
+While state-of-the-art ATP models perform capably within the MathLib framework,
+performance drops by an average of roughly
+26% on the definitionally equivalent Tao formulation. This indicates that the main bottleneck is
+limited generalization across definitional frameworks rather than task difficulty.
+</p>
+        </div>
+      </div>
+    </div>
+      
+      
+    </div>
+  </section>
+
+  <!-- Introduction -->
+  <section class="section" id="introduction">
+    <div class="container" style="margin-bottom: 2vh;">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3">Introduction</h2>
+          <div class="content has-text-justified">
+<p>
+Automated theorem proving (ATP) benchmarks
+largely consist of problems formalized in MathLib, so current ATP training and evaluation
+are heavily biased toward MathLib's definitional
+framework. However, frontier mathematics is
+often exploratory and prototype-heavy, relying
+on bespoke constructions that deviate from standard libraries. 
+In this work, we evaluate the robustness of current ATP systems when applied
+to a novel definitional framework, specifically
+examining the performance gap between standard library problems and bespoke mathematical constructions.
+</p> 
+
+<p>
+We introduce <b><span class="tao">TaoBench</span></b>, an undergraduate-level benchmark derived from
+Terence Tao's <em>Analysis I</em>, which formalizes analysis by <b>constructing core mathematical concepts
+from scratch, without relying on standard Mathlib definitions, as well as by mixing from-scratch
+and MathLib constructions.</b> For fair evaluation, we build an agentic pipeline that automatically
+extracts a compilable, self-contained local environment for each problem. <b>To isolate the effect of definitional frameworks, we additionally
+translate every problem into a mathematically equivalent Mathlib formulation,</b> yielding paired
+<b><span class="tao_mathlib">TaoBenchMathlib</span></b> statements for direct comparison. 
+</p>
+
+<p>
+While state-of-the-art ATP models perform capably within the MathLib framework,
+performance drops by an average of roughly
+26% on the definitionally equivalent Tao formulation. This indicates that the main bottleneck is
+limited generalization across definitional frameworks rather than task difficulty.
+<b><span class="tao">TaoBench</span></b>
+thus highlights a gap between benchmark performance and applicability, and provides a concrete
+foundation for developing and testing provers
+better aligned with research mathematics.
+</p>
+          </div>
+          
+          
+        </div>
+      </div>
+    </div>
+  </section>
+  <!--/ Introduction -->
+
+  <!-- IneqMath Examples -->
+  <section class="section" id="examples">
+    <div class="container" style="margin-bottom: 2vh;">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3"> <span class="tao">TaoBench</span> Examples</h2>
+          <div class="content has-text-justified">
+            <p>
+Below are examples from <b><span class="tao">TaoBench</span></b> and <b><span class="tao_mathlib">TaoBenchMathlib</span></b>.
+<b><span class="tao">TaoBench</span></b> is grounded in 150 exercises from Terence Tao's Lean formalization of <em>Analysis I</em>. This formalization develops 
+core concepts of analysis from first principles rather than relying on standard MathLib definitions,
+and in some cases combines from-scratch constructions with MathLib components.
+<b>Moreover, we construct a paired control: for each Tao-style problem, we
+construct a mathematically equivalent MathLib formulation</b>, which we title <b><span class="tao_mathlib">TaoBenchMathlib</span></b>. This paired
+representation isolates the effect of definitional frameworks
+from the difficulty of each problem, enabling a direct evaluation of impact on model performance.
+            </p>
+
+            <div id="examples-carousel" class="carousel results-carousel">
+              <div class="box m-5" style="height: 650px;">
+                <div class="content has-text-centered">
+                  <img src="assets/figures/Convergesto.squeeze_full.png" style="width: 200%; height: auto;">
+                </div>
+              </div>
+
+              <div class="box m-5" style="height: 650px;">
+                <div class="content has-text-centered">
+                  <img src="assets/figures/Nat.backwards_induction_full.png" style="width: 200%; height: auto;">
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!--/ IneqMath Examples -->
+
+  <!-- Fine-grained Informal Judges -->
+  <section class="section" id="judges">
+    <div class="container" style="margin-bottom: 2vh;">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3"><span class="tao">TaoBench</span> Data Construction</h2>
+          <div class="content has-text-justified">
+            <p>
+First, we construct an agentic pipeline that faithfully retrieves minimal, compilable contexts from a large, custom Lean project.
+Second, we generate <b><span class="tao">TaoBench</span></b>, a set of textbook-syntax exercises with minimal, fully compilable Lean context that preserves the intent of the original formalization. This
+benchmark enables a controlled evaluation of model performance under a genuine out-of-distribution formal setting,
+while avoiding confounding factors arising from missing context or compilation failures.
+            </p>
+
+            <div class="content has-text-centered">
+              <img src="assets/figures/TaoVer_Pipeline.png" width="90%" style="margin: 20px 0;">
+              <p>Agentic framework for automatically extracting a compilable, self-contained local environment from a formalized textbook. 
+                The construction of references and dependencies for each exercise is performed using the JiXia tool. An agentic harness, 
+                equipped with a file-lookup tool and a Lean verifier, then iteratively builds a compilable, self-contained local environment.</p>
+            </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!--/ Fine-grained Informal Judges -->
+
+
+    <!-- Fine-grained Informal Judges -->
+  <section class="section" id="judges">
+    <div class="container" style="margin-bottom: 2vh;">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3"><span class="tao_mathlib">TaoBenchMathlib</span> Translation Pipeline </h2>
+          <div class="content has-text-justified">
+            <p>
+Our translation pipeline consists of two stages: <b>a rewriting stage and an equivalence-checking stage</b>. <b>In the rewriting
+stage</b>, we prompt GPT-5.1 with web search enabled to reformulate the Tao-style statement into a MathLib-compatible version.
+<!-- We explicitly restrict the model from introducing new local definitions or notation and require adherence to
+a fixed MathLib header, ensuring consistency across translated problems. The resulting statement is then passed to
+the Lean compiler, and we employ an iterative refinement loop in which compiler error messages are used to resolve
+syntactic and typing errors until the statement compiles successfully. -->
+
+<b>In the equivalence-checking stage</b>, using the JiXia tool, we extract the target proof states for both the Tao and MathLib formulations,
+grounding the comparison in their respective proof obligations. We then prompt GPT-5.1, again with web search
+enabled, to assess whether the two formulations are mathematically equivalent given their statements and target states.
+Candidates that fail this equivalence check are discarded, and the pipeline is restarted to regenerate a valid reformulation.
+            </p>
+            <p>
+To verify the quality of both versions of the benchmark, we had expert human annotators provide determinations
+on whether the <b><span class="tao">TaoBench</span></b> faithfully retrieved the context for each exercise, and whether each MathLib formalization
+was mathematically equivalent to its Tao counterpart. Each annotator had completed an equivalent Analysis I course
+and had experience in formal proving in Lean. Issues identified by annotators in context retrieval helped us construct
+a final agentic context retrieval pipeline that produces correct context for all 150 problems initially chosen to be in <b><span class="tao">TaoBench</span></b>. 
+            </p>
+
+            <div class="content has-text-centered">
+              <img src="assets/figures/MathlibVer_Conversion_Pipeline.png" width="90%" style="margin: 20px 0;">
+              <p>Translation pipeline for converting exercises from Tao's definitional framework to MathLib's. The rewriting and equivalence
+checking stages ensure the compilability and mathematical equivalence of <b><span class="tao_mathlib">TaoBenchMathlib</span></b>, followed by expert verification for
+additional assurance.</p>
+            </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!--/ Fine-grained Informal Judges -->
+
+
+    <!-- Data Statistics -->
+  <section class="section" id="dataset-overview">
+    <div class="container" style="margin-bottom: 2vh;">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3">Dataset Overview</h2>
+          <div class="content has-text-justified">
+            <p>
+<b><span class="tao">TaoBench</span></b> comprises ten chapters (Chapters 2-11) and sixty-five subsections that follow a standard progression from foundational material (natural numbers, set theory, and number systems) to core real analysis topics, including limits, series, continuity, differentiation, and the Riemann integral.
+            </p>
+            <img src="assets/figures/PieChart_Chapter.png" width="60%" style="display: block; margin: 0 auto;">
+          </div>
+          <div class="content has-text-justified">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!--/ Data Statistics -->
+
+
+
+  <!-- Results -->
+  <section class="section" id="results">
+    <div class="container">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3">Experimental Results</h2>
+          
+          <h3 class="title is-4">Main Results</h3>
+          <div class="content has-text-justified">
+
+            <div class="content has-text-justified" style="margin-top: 2rem;">
+              <p>
+The table below reports pass@128 results on <b><span class="tao">TaoBench</span></b> and
+<b><span class="tao_mathlib">TaoBenchMathlib</span></b>. Although the two versions of the
+benchmarks consist of mathematically equivalent problem
+sets, all evaluated provers perform substantially worse on
+the Tao formulations than on the MathLib formulations.
+This consistent degradation highlights the difficulty current
+provers face under a shift in definitional frameworks.
+              </p>
+            <div class="content has-text-centered">
+              <img src="assets/figures/Main_Results.png" width="90%" style="margin: 20px 0;">
+              <p>
+                Model Performance on <b><span class="tao">TaoBench</span></b> and <b><span class="tao_mathlib">TaoBenchMathlib</span></b>. Results are reported as pass rates on 150 problems.
+              </p>
+            </div>
+          </div>
+          
+          <h3 class="title is-4" style="margin-top: 3rem;">In-depth Study</h3>
+          <h3 class="title is-4" style="margin-top: 3rem;">Context Length</h3>
+          <div class="content has-text-justified">
+            <p>
+We also observe that the performance delta between
+TAOBENCH and TAOBENCHMATHLIB performance increases with context length. At n = 0, the average delta
+across models is near zero, which confirms that Tao problems without local definitions are not inherently harder than
+their MathLib counterparts. However, when the number of
+in-context definitions increases to 5 ≤ n < 10, the average delta exceeds 40 percentage points, and for n ≥ 10,
+it approaches or exceeds 50 percentage points for all models. This pattern suggests that the performance difference
+is driven by an inability to effectively integrate and reason
+over unfamiliar definitions introduced in context.
+            </p>
+
+            <div class="content has-text-centered">
+              <img src="assets/figures/Num_Definition_Delta_noGPT.png" width="100%" style="margin: 20px 0;">
+              <p>
+                Model Performance on <b><span class="tao">TaoBench</span></b> and <b><span class="tao_mathlib">TaoBenchMathlib</span></b>. Results are reported as pass rates on 150 problems.
+              </p>
+            </div>
+
+          </div>
+<!-- 
+          <h3 class="title is-4" id="improvement" style="margin-top: 3rem;">Improvement Strategies</h3>
+          <div class="content has-text-justified">
+            <p>
+              We explore four promising strategies to enhance LLM performance on <span class="ineq-blue">Ineq</span><span class="ineq-red">Math</span>: 
+              retrieving relevant theorems as hints, self-improvement via critic as feedback, taking annotated theorems as hints, and retrieving training problems as demonstrations. 
+            </p>
+
+            <div id="improvement-carousel" class="carousel results-carousel">
+              <div class="box m-5">
+                <div class="content has-text-centered">
+                  <img src="assets/improvement_strategies/theorem_as_hints.png" width="65%">
+                  <p style="margin-top: 1.5rem;"><b>Retrieving relevant theorems as hints:</b> As shown in the figure, providing one or two such theorems decreases overall accuracy for weaker models (e.g., Grok 3 mini, o3-mini, o4-mini), 
+                    likely due to misapplication or distraction by potentially irrelevant information. Conversely, stronger models like Gemini 2.5 Pro benefit from these hints, suggesting advanced reasoning is crucial to effectively use such guidance. 
+                    These results underscore the potential of theorem-guided reasoning but also highlight the critical need for more sophisticated theorem retrieval mechanisms (e.g., RAG) to reliably enhance LLM performance in inequality proving.
+                  </p>
+                </div>
+              </div>
+
+              <div class="box m-5">
+                <div class="content has-text-centered">
+                  <img src="assets/improvement_strategies/self_critic.png" width="65%">
+                  <p style="margin-top: 1.5rem;"> <b>Self-improvement via critic as feedback:</b> As the figure shows, self-critique consistently improves performance—e.g., Gemini 2.5 Pro's overall accuracy rises 
+                    from 43% to 48%. This upward trend underscores self-critique as a promising, supervision-free method to enhance the logical rigor and solution quality of LLMs in inequality reasoning.
+                  </p>
+                </div>
+              </div>
+
+              <div class="box m-5">
+                <div class="content has-text-centered">
+                  <img src="assets/improvement_strategies/annotated_theorem_as_hints.png" width="65%">
+                  <p style="margin-top: 1.5rem;"> <b>Taking annotated theorems as hints:</b> The figure reveals a consistent uplift in overall accuracy across models, with gains reaching
+                    up to 11% (e.g., for o3-mini).
+                  </p>
+                </div>
+              </div>
+
+              <div class="box m-5">
+                <div class="content has-text-centered">
+                  <img src="assets/improvement_strategies/problem_as_demonstrations.png" width="65%">
+                  <p style="margin-top: 1.5rem;"> <b>Retrieving training problems as demonstrations:</b> As shown by the overall accuracy in the figure, Grok 3 mini's performance improves from a baseline of 10% (with no demonstration problem)
+                     to 13% when provided with one such problem. However, its accuracy drops sharply to 3% when two problems are used as demonstrations. 
+                     Similarly, Gemini 2.5 Pro peaks at 53% accuracy with one demonstration problem, declining to 45% with two. o4-mini reaches 23% accuracy with one demonstration problem, 
+                     a 3% increase from its 20% baseline (without demonstrations). 
+                  </p>
+                </div>
+              </div>
+
+            </div>
+          </div> -->
+<!-- 
+          <h3 class="title is-4" id="formalized" style="margin-top: 3rem;">Formalized <b><span class="ineq-blue">Ineq</span><span class="ineq-red">Math</span></b> Evaluation</h3>
+          <div class="content has-text-justified">
+            <p>
+              To expand the impact of <b><span class="ineq-blue">Ineq</span><span class="ineq-red">Math</span></b>, we conduct a formal evaluation on state-of-the-art automated theorem proving (ATP) models. We convert the natural language inequality problems in <b><span class="ineq-blue">Ineq</span><span class="ineq-red">Math</span></b> into machine-verifiable Lean4 code as illustrated below. Then, we evaluate the SOTA models on the formalized Lean4 problems to measure their ability to solve inequality tasks with pass@32 setting.
+            </p>
+
+            <p style="margin-top: 1.5rem;">
+              The results below show that state-of-the-art (SOTA) formal automated theorem proving models still suffer from the difficult inequality problems in <b><span class="ineq-blue">Ineq</span><span class="ineq-red">Math</span></b>. Even the best-performing model, Goedel-Prover-SFT, achieves only a 14.0% pass rate, while others remain far lower. 
+            </p>
+
+            <div id="formalized-carousel" class="carousel results-carousel">
+              <div class="box m-5">
+                <div class="content has-text-centered">
+                  <img src="assets/formal_experiment/formal_illustration_bound.png" width="90%">
+                  <p><b>Illustration of the formalization process for bound problems.</b></p>
+                </div>
+              </div>
+
+              <div class="box m-5">
+                <div class="content has-text-centered">
+                  <img src="assets/formal_experiment/formal_illustration_relation.png" width="90%">
+                  <p><b>Illustration of the formalization process for relation problems.</b></p>
+                </div>
+              </div>
+
+              <div class="box m-5">
+                <div class="content has-text-centered">
+                  <img src="assets/formal_experiment/formal_results.png" width="90%">
+                  <p><b>Pass@32 performance of state-of-the-art formal automated theorem proving models.</b></p>
+                </div>
+              </div>
+            </div> -->
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!--/ Results -->
+
+  
+  <!-- Share Buttons -->
+  <!-- <section class="section" id="Share"> -->
+
+  <!-- <div class="column has-text-centered"> -->
+    <!-- <h2 class="title is-3 has-text-centered">Share <b><span class="ineq-blue">Ineq</span><span class="ineq-red">Math</span></b>(TODO)</h2> -->
+    <!-- Social Media Share Buttons -->
+    <!-- <div class="social-share-buttons" style="margin-top: 20px;"> -->
+      <!-- Twitter Share Button -->
+      <!-- <a href="https://twitter.com/intent/tweet?text=Introducing%20OctoTools:%20An%20Agentic%20Framework%20with%20Extensible%20Tools%20for%20Complex%20Reasoning%20https://octotools.github.io" 
+         class="button is-info is-outlined"
+         target="_blank">
+        <span class="icon">
+          <i class="fab fa-twitter"></i>
+        </span>
+        <span>Share on X (Twitter)</span>
+      </a>
+      
+      LinkedIn Share Button -->
+      <!-- <a href="https://www.linkedin.com/feed/?shareActive=true&shareUrl=https%3A%2F%2Foctotools.github.io" 
+         class="button is-info is-outlined"
+         style="margin-left: 10px;"
+         target="_blank">
+        <span class="icon">
+          <i class="fab fa-linkedin"></i>
+        </span>
+        <span>Share on LinkedIn</span>
+      </a> -->
+    <!-- </div> -->
+  <!-- </div> -->
+  <!-- </section> -->
+
+  <!-- BibTeX -->
+  <!-- <section class="section" id="BibTeX">
+    <div class="container is-max-desktop content">
+      <h2 class="title is-3 has-text-centered">BibTeX</h2>
+      <pre><code>@inproceedings{lu2025solving,
+    title={Solving Inequality Proofs with Large Language Models},
+    author={Lu, Pan and Sheng, Jiayi and Lyu, Luna and Jin, Jikai and Xia, Tony and Gu, Alex and Zou, James},
+    booktitle={The 39th Conference on Neural Information Processing Systems (NeurIPS)},
+    year={2025}
+}</code></pre>
+    </div>
+  </section>
+
+  <section>
+    <div class="section" id="org-banners">
+      
+      <div class="org-banner-row org-banner-row-centered">
+        <a href="https://www.stanford.edu/" target="_blank" rel="external">
+          <img class="center-block org-banner" src="assets/logos/stanford.png" alt="Stanford University">
+        </a>
+        <a href="https://ai.stanford.edu/" target="_blank" rel="external">
+          <img class="center-block org-banner" src="assets/logos/ai_stanford.png" alt="Stanford AI Lab">
+        </a>
+        <a href="https://hai.stanford.edu//" target="_blank" rel="external">
+          <img class="center-block org-banner" src="assets/logos/HAI.png" alt="Stanford HAI">
+        </a>
+      </div>
+      
+      <div class="org-banner-row">
+        <a href="https://www.berkeley.edu/" target="_blank" rel="external">
+          <img class="center-block org-banner" src="assets/logos/berkeley.png" alt="UC Berkeley">
+        </a>
+        <a href="https://www.mit.edu/" target="_blank" rel="external">
+          <img class="center-block org-banner" src="assets/logos/mit.png" alt="MIT">
+        </a>
+      </div>
+    </div>
+  </section> -->
+
+
+  <!-- License -->
+  <!-- <footer class="footer">
+    <div class="container">
+      <div class="content has-text-centered">
+      </div>
+      <div class="columns is-centered">
+        <div class="column is-8">
+          <div class="columns is-vcentered">
+            <div class="column">
+              <div class="content">
+                <p>
+                  This website is adapted from <a href="https://nerfies.github.io/">Nerfies</a> and <a
+                    href="https://mathvista.github.io/">MathVista</a>, licensed under a <a rel="license"
+                    href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
+                    Commons Attribution-ShareAlike 4.0 International License</a>.
+                </p>
+              </div>
+            </div>
+            <div class="column is-narrow" style="display: flex; align-items: center; justify-content: flex-end;">
+              <div style="max-width:320px; min-width:220px; width:100%; display:flex; justify-content:flex-end;">
+                <script type="text/javascript" id="clustrmaps" src="//clustrmaps.com/map_v2.js?d=i7JXLVe24sIuDnlFe0kqhH9IOP18okykNZrOzZVQl6M&cl=ffffff&w=a"></script>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer> -->
+
+  
+
+</body>
+
+  <!-- Back to top button -->
+  <button onclick="topFunction()" id="topButton" title="Go to top">
+    <i class="fas fa-arrow-up"></i>
+  </button>
+
+  <!-- Add script to toggle TOC visibility -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var toc = document.querySelector('.toc-wrapper');
+      var hideBtn = document.getElementById('hide-toc-btn');
+      var showBtn = document.getElementById('show-toc-btn');
+      if (hideBtn && showBtn && toc) {
+        hideBtn.onclick = function() {
+          toc.style.display = 'none';
+          showBtn.style.display = 'block';
+        };
+        showBtn.onclick = function() {
+          toc.style.display = '';
+          showBtn.style.display = 'none';
+        };
+      }
+    });
+  </script>
+
+</html>
