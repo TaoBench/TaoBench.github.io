@@ -308,8 +308,8 @@
           </a>
           <div class="navbar-dropdown">
             <a class="navbar-item" href="" target="_blank">
-              <b>PLACEHOLDER</b>
-              <p style="font-size:18px; display: inline; margin-left: 5px;">🔥</p>
+              <!-- <b>PLACEHOLDER</b>
+              <p style="font-size:18px; display: inline; margin-left: 5px;">🔥</p> -->
             </a>
             
             
@@ -333,12 +333,12 @@
       <button class="toc-close" id="toc-close" aria-label="Close table of contents">×</button>
     </div>
     <ul class="toc-list">
+      <li><a href="#teaser">Overview</a></li>
       <li><a href="#introduction">Introduction</a></li>
-      <li><a href="#examples"><b><span class="ineq-blue">Ineq</span><span class="ineq-red">Math</span></b> Examples</a></li>
-      <li><a href="#judges">Informal Judges</a></li>
-      <li><a href="#leaderboard"><b><span class="ineq-blue">Ineq</span><span class="ineq-red">Math</span></b> Leaderboard</a></li>
+      <li><a href="#examples">TaoBench Examples</a></li>
+      <li><a href="#TaoBench_Data">TaoBench Data Construction</a></li>
+      <li><a href="#TaoBenchMathlib_Data">TaoBenchMathlib Translation Pipeline</a></li>
       <li><a href="#dataset-overview">Dataset Overview</a></li>
-      <li><a href="#visualization">Visualization</a></li>
       <li><a href="#results">Experimental Results</a></li>
       <li><a href="#BibTeX">BibTeX</a></li>
     </ul>
@@ -457,7 +457,7 @@
     </div>
   </section>
 
-  <section class="hero teaser">
+  <section class="hero teaser" id="teaser">
     <div class="container is-max-desktop">
       <div class="figure-row">
         <div class="figure-image">
@@ -584,7 +584,7 @@ from the difficulty of each problem, enabling a direct evaluation of impact on m
   <!--/ IneqMath Examples -->
 
   <!-- Fine-grained Informal Judges -->
-  <section class="section" id="judges">
+  <section class="section" id="TaoBench_Data">
     <div class="container" style="margin-bottom: 2vh;">
       <div class="columns is-centered has-text-centered">
         <div class="column is-four-fifths">
@@ -614,7 +614,7 @@ while avoiding confounding factors arising from missing context or compilation f
 
 
     <!-- Fine-grained Informal Judges -->
-  <section class="section" id="judges">
+  <section class="section" id="TaoBenchMathlib_Data">
     <div class="container" style="margin-bottom: 2vh;">
       <div class="columns is-centered has-text-centered">
         <div class="column is-four-fifths">
@@ -711,8 +711,8 @@ provers face under a shift in definitional frameworks.
           <h3 class="title is-4" style="margin-top: 3rem;">Context Length</h3>
           <div class="content has-text-justified">
             <p>
-We also observe that the performance delta between
-TAOBENCH and TAOBENCHMATHLIB performance increases with context length. At n = 0, the average delta
+We observe that the performance delta between
+<b><span class="tao">TaoBench</span></b> and <b><span class="tao_mathlib">TaoBenchMathlib</span></b> performance increases with context length. At n = 0, the average delta
 across models is near zero, which confirms that Tao problems without local definitions are not inherently harder than
 their MathLib counterparts. However, when the number of
 in-context definitions increases to 5 ≤ n < 10, the average delta exceeds 40 percentage points, and for n ≥ 10,
@@ -728,90 +728,85 @@ over unfamiliar definitions introduced in context.
               </p>
             </div>
 
+
+            <div class="content has-text-centered">
+              <img src="assets/figures/Counts_of_data_samples.png" width="50%" style="margin: 20px 0;">
+              <p>
+                Counts of data samples across ranges of different numbers of local definitions.
+              </p>
+            </div>
+
           </div>
-<!-- 
-          <h3 class="title is-4" id="improvement" style="margin-top: 3rem;">Improvement Strategies</h3>
+
+          <h3 class="title is-4" id="improvement" style="margin-top: 3rem;">Frontier Models & Context Dependency</h3>
           <div class="content has-text-justified">
             <p>
-              We explore four promising strategies to enhance LLM performance on <span class="ineq-blue">Ineq</span><span class="ineq-red">Math</span>: 
-              retrieving relevant theorems as hints, self-improvement via critic as feedback, taking annotated theorems as hints, and retrieving training problems as demonstrations. 
+<b>Frontier Models:</b> Frontier models underperform both Goedel-Prover-V2-32B and several 7B parameter ATP models on the MathLib problem formulations,
+which indicates that ATP models excel in definitional frameworks in which they are trained. However, while the
+performances of the frontier models do degrade on the Tao problem formulations, they achieve performances comparable to - or even in excess of - Goedel-Prover-V2-32B. These results indicate that the relative advantage of frontier
+models on Tao formulations is driven by a superior capability to leverage in-context examples rather than overall stronger proving capabilities.
             </p>
+
 
             <div id="improvement-carousel" class="carousel results-carousel">
               <div class="box m-5">
                 <div class="content has-text-centered">
-                  <img src="assets/improvement_strategies/theorem_as_hints.png" width="65%">
-                  <p style="margin-top: 1.5rem;"><b>Retrieving relevant theorems as hints:</b> As shown in the figure, providing one or two such theorems decreases overall accuracy for weaker models (e.g., Grok 3 mini, o3-mini, o4-mini), 
-                    likely due to misapplication or distraction by potentially irrelevant information. Conversely, stronger models like Gemini 2.5 Pro benefit from these hints, suggesting advanced reasoning is crucial to effectively use such guidance. 
-                    These results underscore the potential of theorem-guided reasoning but also highlight the critical need for more sophisticated theorem retrieval mechanisms (e.g., RAG) to reliably enhance LLM performance in inequality proving.
+                  <img src="assets/figures/Frontier_Models.png" width="65%">
+                  <p style="margin-top: 1.5rem;">
+                    Model Performance on <b><span class="tao">TaoBench</span></b> and <b><span class="tao_mathlib">TaoBenchMathlib</span></b> for frontier foundation models.
                   </p>
                 </div>
               </div>
 
               <div class="box m-5">
                 <div class="content has-text-centered">
-                  <img src="assets/improvement_strategies/self_critic.png" width="65%">
-                  <p style="margin-top: 1.5rem;"> <b>Self-improvement via critic as feedback:</b> As the figure shows, self-critique consistently improves performance—e.g., Gemini 2.5 Pro's overall accuracy rises 
-                    from 43% to 48%. This upward trend underscores self-critique as a promising, supervision-free method to enhance the logical rigor and solution quality of LLMs in inequality reasoning.
+                  <img src="assets/figures/Without_retrieved_context.png" width="65%">
+                  <p style="margin-top: 1.5rem;">
+                    Model performance on <b><span class="tao">TaoBench</span></b> with and without the retrieved context as part of the input.
+                    
                   </p>
                 </div>
               </div>
 
-              <div class="box m-5">
-                <div class="content has-text-centered">
-                  <img src="assets/improvement_strategies/annotated_theorem_as_hints.png" width="65%">
-                  <p style="margin-top: 1.5rem;"> <b>Taking annotated theorems as hints:</b> The figure reveals a consistent uplift in overall accuracy across models, with gains reaching
-                    up to 11% (e.g., for o3-mini).
-                  </p>
-                </div>
-              </div>
 
-              <div class="box m-5">
-                <div class="content has-text-centered">
-                  <img src="assets/improvement_strategies/problem_as_demonstrations.png" width="65%">
-                  <p style="margin-top: 1.5rem;"> <b>Retrieving training problems as demonstrations:</b> As shown by the overall accuracy in the figure, Grok 3 mini's performance improves from a baseline of 10% (with no demonstration problem)
-                     to 13% when provided with one such problem. However, its accuracy drops sharply to 3% when two problems are used as demonstrations. 
-                     Similarly, Gemini 2.5 Pro peaks at 53% accuracy with one demonstration problem, declining to 45% with two. o4-mini reaches 23% accuracy with one demonstration problem, 
-                     a 3% increase from its 20% baseline (without demonstrations). 
-                  </p>
-                </div>
-              </div>
 
             </div>
-          </div> -->
-<!-- 
-          <h3 class="title is-4" id="formalized" style="margin-top: 3rem;">Formalized <b><span class="ineq-blue">Ineq</span><span class="ineq-red">Math</span></b> Evaluation</h3>
+
+            <p>
+<b>Context Dependency:</b> Across all models, removing contextual information leads to a consistent, but relatively modest drop in performance compared to the full-context Tao setting. A manual review of the problems that models solved without context shows that the associated set of references either contained no additional statements (i.e., context length of zero) or referenced a small set of statements that were similar to or in the standard MathLib definitional framework (ex., the rational numbers). Taken with the context-length analysis, these results indicate that current formal theorem provers do not reliably benefit from in-context definitional information unless it conforms closely to their training distribution. The presence of explicit local definitions is therefore not inherently helpful and can be actively harmful, highlighting a limitation in models ability to perform in-context definitional grounding.
+            </p>
+            
+          </div>
+
+
+          <h3 class="title is-4" id="formalized" style="margin-top: 3rem;">Model Performance by Chapter</h3>
           <div class="content has-text-justified">
             <p>
-              To expand the impact of <b><span class="ineq-blue">Ineq</span><span class="ineq-red">Math</span></b>, we conduct a formal evaluation on state-of-the-art automated theorem proving (ATP) models. We convert the natural language inequality problems in <b><span class="ineq-blue">Ineq</span><span class="ineq-red">Math</span></b> into machine-verifiable Lean4 code as illustrated below. Then, we evaluate the SOTA models on the formalized Lean4 problems to measure their ability to solve inequality tasks with pass@32 setting.
-            </p>
-
-            <p style="margin-top: 1.5rem;">
-              The results below show that state-of-the-art (SOTA) formal automated theorem proving models still suffer from the difficult inequality problems in <b><span class="ineq-blue">Ineq</span><span class="ineq-red">Math</span></b>. Even the best-performing model, Goedel-Prover-SFT, achieves only a 14.0% pass rate, while others remain far lower. 
+Figure 7 breaks down pass rates by chapter and shows that the overall Tao-MathLib gap is not uniform: it is concen-
+trated in a few chapters where the representation of core objects diverges most from MathLib. A large and consistent
+gap appears in Set Theory (Ch. 3), where all five models exhibit a substantial MathLib advantage of roughly 42-58
+percentage points. Two pronounced failure modes occur in The Natural Numbers (Ch. 1) and Series (Ch. 7): 
+for all five models, Tao accuracy falls to 0%, while the MathLib translation remains solvable, suggesting that the bottleneck
+is not the underlying analysis content but rather sensitivity to the new definitional framework.
             </p>
 
             <div id="formalized-carousel" class="carousel results-carousel">
               <div class="box m-5">
                 <div class="content has-text-centered">
-                  <img src="assets/formal_experiment/formal_illustration_bound.png" width="90%">
-                  <p><b>Illustration of the formalization process for bound problems.</b></p>
+                  <img src="assets/figures/HeatMap_Chapter_noGPT.png" width="90%">
+Model Performance by Chapter. For each cell, accuracies on TaoBench and TaoBenchMathlib are shown in the upper-right and lower-left corners, respectively. The upper-left corner shows the difference (TaoBenchMathlib - TaoBench). DS[7B]* indicates DeepSeek-Prover-V2-7B (w/o COT).
                 </div>
               </div>
 
               <div class="box m-5">
                 <div class="content has-text-centered">
-                  <img src="assets/formal_experiment/formal_illustration_relation.png" width="90%">
-                  <p><b>Illustration of the formalization process for relation problems.</b></p>
+                  <img src="assets/figures/Model_Performance_by_Chapter.png" width="90%">
+                  <p>Model Performance by Chapter.</p>
                 </div>
               </div>
 
-              <div class="box m-5">
-                <div class="content has-text-centered">
-                  <img src="assets/formal_experiment/formal_results.png" width="90%">
-                  <p><b>Pass@32 performance of state-of-the-art formal automated theorem proving models.</b></p>
-                </div>
-              </div>
-            </div> -->
+
+            </div>
 
           </div>
         </div>
@@ -820,52 +815,17 @@ over unfamiliar definitions introduced in context.
   </section>
   <!--/ Results -->
 
-  
-  <!-- Share Buttons -->
-  <!-- <section class="section" id="Share"> -->
 
-  <!-- <div class="column has-text-centered"> -->
-    <!-- <h2 class="title is-3 has-text-centered">Share <b><span class="ineq-blue">Ineq</span><span class="ineq-red">Math</span></b>(TODO)</h2> -->
-    <!-- Social Media Share Buttons -->
-    <!-- <div class="social-share-buttons" style="margin-top: 20px;"> -->
-      <!-- Twitter Share Button -->
-      <!-- <a href="https://twitter.com/intent/tweet?text=Introducing%20OctoTools:%20An%20Agentic%20Framework%20with%20Extensible%20Tools%20for%20Complex%20Reasoning%20https://octotools.github.io" 
-         class="button is-info is-outlined"
-         target="_blank">
-        <span class="icon">
-          <i class="fab fa-twitter"></i>
-        </span>
-        <span>Share on X (Twitter)</span>
-      </a>
-      
-      LinkedIn Share Button -->
-      <!-- <a href="https://www.linkedin.com/feed/?shareActive=true&shareUrl=https%3A%2F%2Foctotools.github.io" 
-         class="button is-info is-outlined"
-         style="margin-left: 10px;"
-         target="_blank">
-        <span class="icon">
-          <i class="fab fa-linkedin"></i>
-        </span>
-        <span>Share on LinkedIn</span>
-      </a> -->
-    <!-- </div> -->
-  <!-- </div> -->
-  <!-- </section> -->
 
   <!-- BibTeX -->
-  <!-- <section class="section" id="BibTeX">
+  <section class="section" id="BibTeX">
     <div class="container is-max-desktop content">
       <h2 class="title is-3 has-text-centered">BibTeX</h2>
-      <pre><code>@inproceedings{lu2025solving,
-    title={Solving Inequality Proofs with Large Language Models},
-    author={Lu, Pan and Sheng, Jiayi and Lyu, Luna and Jin, Jikai and Xia, Tony and Gu, Alex and Zou, James},
-    booktitle={The 39th Conference on Neural Information Processing Systems (NeurIPS)},
-    year={2025}
-}</code></pre>
+      <pre><code>@ PLACEHOLDER</code></pre>
     </div>
   </section>
 
-  <section>
+  <!-- <section>
     <div class="section" id="org-banners">
       
       <div class="org-banner-row org-banner-row-centered">
@@ -893,7 +853,7 @@ over unfamiliar definitions introduced in context.
 
 
   <!-- License -->
-  <!-- <footer class="footer">
+  <footer class="footer">
     <div class="container">
       <div class="content has-text-centered">
       </div>
@@ -910,16 +870,16 @@ over unfamiliar definitions introduced in context.
                 </p>
               </div>
             </div>
-            <div class="column is-narrow" style="display: flex; align-items: center; justify-content: flex-end;">
+            <!-- <div class="column is-narrow" style="display: flex; align-items: center; justify-content: flex-end;">
               <div style="max-width:320px; min-width:220px; width:100%; display:flex; justify-content:flex-end;">
                 <script type="text/javascript" id="clustrmaps" src="//clustrmaps.com/map_v2.js?d=i7JXLVe24sIuDnlFe0kqhH9IOP18okykNZrOzZVQl6M&cl=ffffff&w=a"></script>
               </div>
-            </div>
+            </div> -->
           </div>
         </div>
       </div>
     </div>
-  </footer> -->
+  </footer>
 
   
 
