@@ -467,8 +467,8 @@
         <div class="figure-text">
           <h2 class="title is-3">Overview</h2>
 <p>
-In this work, we evaluate the robustness of current ATP systems when applied
-to a novel definitional framework, specifically
+<b>In this work, we evaluate the robustness of current ATP systems when applied
+to a novel definitional framework</b>, specifically
 examining the performance gap between standard library problems and bespoke mathematical constructions.
 </p> 
 
@@ -590,7 +590,8 @@ from the difficulty of each problem, enabling a direct evaluation of impact on m
         <div class="column is-four-fifths">
           <h2 class="title is-3"><span class="tao">TaoBench</span> Data Construction</h2>
           <div class="content has-text-justified">
-            <p>
+
+            <!-- <p>
 Constructing a benchmark that preserves the exact textbook formalizations while producing a self-contained succinct
 compilable Lean snippet presents significant technical challenges for current LLMs. We find that naïvely importing
 entire chapters or sections of the textbook leads to excessive context length, compilation failures, and unfaithful re-
@@ -607,7 +608,13 @@ The final output of this process is two-fold. First, we construct an agentic pip
 Second, we generate <b><span class="tao">TaoBench</span></b>, a set of textbook-syntax exercises with minimal, fully compilable Lean context that preserves the intent of the original formalization. This
 benchmark enables a controlled evaluation of model performance under a genuine out-of-distribution formal setting,
 while avoiding confounding factors arising from missing context or compilation failures.
+            </p> -->
+            <p>
+            Constructing a benchmark that preserves exact textbook formalizations while producing self-contained, succinct, and compilable Lean snippets is challenging for current LLMs. Naïvely importing entire chapters or sections of the textbook leads to excessive context length, compilation failures, and unfaithful reconstructions of the original problem and its intent. Even when prompted to optimize for compilation, models may silently alter the intended meaning by introducing shortcuts or trivializing local definitions. These issues motivate an agentic pipeline that grounds the model in authoritative reference information, retrieves only the necessary context, and supports iterative compilation and repair.
+            </p>
 
+            <p>
+            <b>Our approach focuses on recovering the minimal context strictly required for faithful compilation of each exercise.</b> Using the JiXia static Lean analysis tool, extended to support additional declaration types, we recursively retrieve the referenced theorems, lemmas, definitions, and notation associated with each benchmark problem. Because JiXia alone does not capture all surface syntax and local notation, we further equip the agent with file lookup to recover source-level syntactic details, as well as a Lean compilation tool that enables repeated compile-and-debug cycles using compiler feedback. The resulting pipeline produces <b><span class="tao">TaoBench</span></b><b>, a benchmark of textbook-syntax exercises paired with minimal, fully compilable Lean contexts, enabling controlled evaluation in a realistic out-of-distribution formal setting without confounds from missing context or compilation errors.</b>
             </p>
 
             <div class="content has-text-centered">
@@ -633,13 +640,10 @@ while avoiding confounding factors arising from missing context or compilation f
         <div class="column is-four-fifths">
           <h2 class="title is-3"><span class="tao_mathlib">TaoBenchMathlib</span> Translation Pipeline </h2>
           <div class="content has-text-justified">
-            <p>
+            
+            <!-- <p>
 Our translation pipeline consists of two stages: <b>a rewriting stage and an equivalence-checking stage</b>. <b>In the rewriting
 stage</b>, we prompt GPT-5.1 with web search enabled to reformulate the Tao-style statement into a MathLib-compatible version.
-<!-- We explicitly restrict the model from introducing new local definitions or notation and require adherence to
-a fixed MathLib header, ensuring consistency across translated problems. The resulting statement is then passed to
-the Lean compiler, and we employ an iterative refinement loop in which compiler error messages are used to resolve
-syntactic and typing errors until the statement compiles successfully. -->
 
 <b>In the equivalence-checking stage</b>, using the JiXia tool, we extract the target proof states for both the Tao and MathLib formulations,
 grounding the comparison in their respective proof obligations. We then prompt GPT-5.1, again with web search
@@ -652,6 +656,15 @@ on whether the <b><span class="tao">TaoBench</span></b> faithfully retrieved the
 was mathematically equivalent to its Tao counterpart. Each annotator had completed an equivalent Analysis I course
 and had experience in formal proving in Lean. Issues identified by annotators in context retrieval helped us construct
 a final agentic context retrieval pipeline that produces correct context for all 150 problems initially chosen to be in <b><span class="tao">TaoBench</span></b>. 
+            </p> -->
+            
+            <p>
+            To isolate the effect of definitional frameworks from the underlying mathematical difficulty, we construct <b><span class="tao_mathlib">TaoBenchMathlib</span></b>, a MathLib-based counterpart to <b><span class="tao">TaoBench</span></b>. The goal is to translate Tao-style statements, which rely on local in-context definitions, into statements that are both valid in MathLib and mathematically faithful to the original textbook exercises. Early direct translation attempts with GPT-5.1 proved unreliable: only around 60% of outputs were syntactically valid Lean, and even fewer preserved the original meaning. The main source of error was the model's difficulty in matching Tao's local definitions with MathLib's canonical definitions and conventions.
+            </p>
+
+            <p>
+            <b>To address this, we developed a three-stage translation pipeline.</b> First, GPT-5.1 with web search enabled rewrites each Tao-style statement into a MathLib-compatible form under fixed formatting constraints, and compiler feedback is used in an iterative loop until the statement compiles successfully. Second, because compilation alone does not ensure semantic correctness, we perform an equivalence-checking step: using JiXia, we extract the target proof states of both the Tao and MathLib formulations, and GPT-5.1 assesses whether they are mathematically equivalent. Expert annotators with backgrounds in Analysis I and Lean then manually verified both context retrieval and translation quality, helping refine the retrieval pipeline and correcting 33 subtle issues in the MathLib formalizations.
+            
             </p>
 
             <div class="content has-text-centered">
